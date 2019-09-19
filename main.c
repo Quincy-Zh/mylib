@@ -7,15 +7,14 @@
 
 int main(int argc, char * argv[])
 {
-    char portname[128] = {0};
+    char buff[128] = {0};
     int baudrate = 9600;
-    int databits = 8;
-    int stopbits = 1;
-    int parity = 0;
-    int flowctrl = 0;
+    int databits = SP_DATA_BITS_8;
+    int stopbits = SP_STOP_BITS_1;
+    int parity = SP_PARITY_NONE;
+    int flowctrl = SP_FLOWCTRL_NONE;
 
-    char *param = 0;
-    char *end = 0;
+    int i = 0;
 
     if(argc < 2)
     {
@@ -24,74 +23,19 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    strncpy(portname, argv[1], sizeof(portname));
-
     if(argc >= 3)
     {
-        param = argv[2];
+        i = sscanf(argv[2], "%d,%d,%d,%d,%d", &baudrate, &databits, &stopbits, &parity, &flowctrl);
 
-        baudrate = strtol(param, &end, 10);
-        if((strlen(param) != (end - param)) || baudrate < 0)
+        if(i == 0)
         {
-            fprintf(stderr, ":: 'baudrate' is invalid.\n");
+            fprintf(stderr, ":: Params is invalid.\n");
 
             return 1;
         }
-
-        if(argc >= 4)
-        {
-            param = argv[3];
-
-            databits = strtol(param, &end, 10);
-            if((strlen(param) != (end - param)) || databits < 0)
-            {
-                fprintf(stderr, ":: 'databits' is invalid.\n");
-
-                return 1;
-            }
-        
-            if(argc >= 5)
-            {
-                param = argv[4];
-
-                stopbits = strtol(param, &end, 10);
-                if((strlen(param) != (end - param)) || databits < 0)
-                {
-                    fprintf(stderr, ":: 'stopbits' is invalid.\n");
-
-                    return 1;
-                }
-            
-                if(argc >= 6)
-                {
-                    param = argv[5];
-
-                    parity = strtol(param, &end, 10);
-                    if((strlen(param) != (end - param)) || databits < 0)
-                    {
-                        fprintf(stderr, ":: 'parity' is invalid.\n");
-
-                        return 1;
-                    }
-
-                    if(argc >= 7)
-                    {
-                        param = argv[6];
-
-                        flowctrl = strtol(param, &end, 10);
-                        if((strlen(param) != (end - param)) || databits < 0)
-                        {
-                            fprintf(stderr, ":: 'flowctrl' is invalid.\n");
-
-                            return 1;
-                        }
-                    }
-                }
-            }
-        }
     }
     
-    printf(":: %s %d-%d-%d-%d-%d.\n", portname, baudrate, databits, stopbits, parity, flowctrl);
+    printf(":: %s %d,%d,%d,%d,%d.\n", argv[1], baudrate, databits, stopbits, parity, flowctrl);
 
     sSerialportParam _param;
     _param.baudrate = baudrate;
@@ -100,10 +44,21 @@ int main(int argc, char * argv[])
     _param.parity = parity;
     _param.flowctrl = flowctrl;
     
-    sSerialportHandle *handle = serialport_open(portname, &_param);
+    sSerialportHandle *handle = serialport_open(argv[1], &_param);
 
     if(handle != NULL)
     {
+        i = serialport_write(handle, "hello", 5);
+        printf(":: Write %d-byte.\n", i);
+
+        i = 0;
+        while( i < 10)
+        {
+            i += serialport_read(handle, buff+i, sizeof(buff)-i);
+        }
+
+        printf(":: read %d-byte.\n", i);
+
         serialport_close(handle);
     }
 
