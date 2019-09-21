@@ -16,9 +16,13 @@
 #include <windows.h>
 
 #ifdef _DEBUG
+
 #ifndef DBG_PRINTF
 #define DBG_PRINTF printf
 #endif
+
+#else
+#define DBG_PRINTF
 #endif
 
 struct SerialportHandle
