@@ -1,12 +1,18 @@
-#include "serialporth.h"
+#include "serialport.h"
+#include "plc.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+static void * serialPortOpen(const char *port, const sSerialParam *param);
+static int serialPortRead(void *handle, char *buff, int max_length);
+static int serialPortWrite(void *handle, const char *buff, int length);
+static void serialPortClose(void *handel);
 
 int main(int argc, char * argv[])
 {
+    int value = 23;
     char buff[128] = {0};
     int baudrate = 9600;
     int databits = SP_DATA_BITS_8;
@@ -16,6 +22,8 @@ int main(int argc, char * argv[])
 
     int i = 0;
 
+    printf(":: Value: %xH, %dD,%oO.\n", value, value, value);
+    
     if(argc < 2)
     {
         fprintf(stderr, "Usage:\n  %s <serial port> [baudrate[,databits[,stopbits[,parity[,flowctrl]]]]].\n", argv[0]);

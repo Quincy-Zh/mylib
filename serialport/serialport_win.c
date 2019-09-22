@@ -10,7 +10,7 @@
 
 #if defined(__WIN32)
 
-#include "serialporth.h"
+#include "serialport.h"
 
 #include <stdio.h>
 #include <windows.h>
