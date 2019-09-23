@@ -1,50 +1,55 @@
 #include "serialport.h"
-#include "plc.h"
+#include "smartmesh_ip.h"
+#include "smartmesh_ip_mngr.h"
+#include "smartmesh_ip_mngr.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <windows.h>
 
 static void * serialPortOpen(const char *port, const sSerialportParam *param);
 static int serialPortRead(void *handle, char *buff, int max_length);
 static int serialPortWrite(void *handle, const char *buff, int length);
 static void serialPortClose(void *handel);
 
+static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
+static int keep_running = 1;
+
+
 int main(int argc, char * argv[])
 {
-    const char cfg_filepath = "cfg_plc_fx.ini";
+    const char *cfg_filepath = "cfg.ini";
+
     uint8_t x_val[5] = {0};
 
-    sPLC plc = {
+    sSmartMeshIP smip_mngr = {
         cfg_filepath,
         serialPortOpen,
         serialPortClose,
         serialPortRead,
         serialPortWrite,
+        NULL,
         NULL
     };
 
-    if(plc_init(&plc, MITSUBISHI_FX))
+    SetConsoleCtrlHandler(CtrlHandler, TRUE);
+
+    if(smip_mngr_init(&smip_mngr))
     {
-        printf(":: 初始化PLC失败.\n");
+        printf(":: FAIL 'smip_mngr_init'.\n");
 
         return 1;
     }
 
-    if(plc_read_bits(&plc, 1, "X0", 5, x_val))
+    while(keep_running)
     {
-        printf(":: 读取 PLC 失败.\n");
-    }
-    else
-    {
-        for(int i = 0 ; i < sizeof(x_val); ++i)
-        {
-            printf("  [X%d]: %d.\n", i, x_val[i]);
-        }
+        smip_mngr_loop(&smip_mngr);
+
+        Sleep(200);
     }
     
-    
-    plc_deinit(&plc);
+    smip_mngr_deinit(&smip_mngr);
 
     return 0;
 }
@@ -56,38 +61,72 @@ void * serialPortOpen(const char *port, const sSerialportParam *param)
 
 int serialPortRead(void *handle, char *buff, int max_length)
 {
-    sSerialportHandle *handle = (sSerialportHandle *)handle;
-
     if(handle == NULL)
     {
         return -1;
     }
 
-    return serialport_read(handle, buff, max_length);
+    return serialport_read((sSerialportHandle *)handle, buff, max_length);
 }
 
 int serialPortWrite(void *handle, const char *buff, int length)
 {
-    sSerialportHandle *handle = (sSerialportHandle *)handle;
-
     if(handle == NULL)
     {
         return -1;
     }
 
-    return serialport_write(handle, buff, length);
+    return serialport_write((sSerialportHandle *)handle, buff, length);
 }
 
-void serialPortClose(void *handel)
+void serialPortClose(void *handle)
 {
-    sSerialportHandle *handle = (sSerialportHandle *)handle;
-
     if(handle == NULL)
     {
         return;
     }
 
-    serialport_close(handle);
+    serialport_close((sSerialportHandle *)handle);
+}
+
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+    switch (fdwCtrlType)
+    {
+        // Handle the CTRL-C signal. 
+    case CTRL_C_EVENT:
+        printf("Ctrl-C event\n\n");
+        Beep(750, 300);
+
+        keep_running = 0;
+
+        return TRUE;
+
+        // CTRL-CLOSE: confirm that the user wants to exit. 
+    case CTRL_CLOSE_EVENT:
+        Beep(600, 200);
+        printf("Ctrl-Close event\n\n");
+        return TRUE;
+
+        // Pass other signals to the next handler. 
+    case CTRL_BREAK_EVENT:
+        Beep(900, 200);
+        printf("Ctrl-Break event\n\n");
+        return FALSE;
+
+    case CTRL_LOGOFF_EVENT:
+        Beep(1000, 200);
+        printf("Ctrl-Logoff event\n\n");
+        return FALSE;
+
+    case CTRL_SHUTDOWN_EVENT:
+        Beep(750, 500);
+        printf("Ctrl-Shutdown event\n\n");
+        return FALSE;
+
+    default:
+        return FALSE;
+    }
 }
 
 // EOF

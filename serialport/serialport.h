@@ -5,9 +5,7 @@
 extern "C" {
 #endif
 
-#include "serialport_param_defs.h"
-
-typedef void (*fnDataArrived)(const char *data, int length);
+#include "serialport_defs.h"
 
 struct SerialportHandle;
 typedef struct SerialportHandle sSerialportHandle;

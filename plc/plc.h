@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "../serialport/serialport_param_defs.h"
+#include "../serialport/serialport_defs.h"
 
 #include <stdint.h>
 
@@ -17,45 +17,6 @@ typedef enum PLC_Type
     MITSUBISHI_FX,
     PANASONIC_,
 } ePLC_Type;
-
-/** 
- * 打开串口函数函数指针
- * 
- * @param port 串口号
- * @param param 串口参数
- * 
- * @return 返回串口句柄，NULL 表示打开失败
- */
-typedef void * (*fnSerialPortOpen)(const char *port, const sSerialportParam *param);
-
-/** 
- * 串口读取函数函数指针
- * 
- * @param handle 串口句柄
- * @param buff 缓存区
- * @param 缓存区长度
- * 
- * @return 实际读取到的数据长度，小于0表示发生错误
- */
-typedef int (*fnSerialPortRead)(void *handle, char *buff, int max_length);
-
-/** 
- * 串口写入函数函数指针
- * 
- * @param handle 串口句柄
- * @param buff 缓存区
- * @param 缓存区长度
- * 
- * @return 实际写入的数据长度，小于0表示发生错误
- */
-typedef int (*fnSerialPortWrite)(void *handle, const char *buff, int length);
-
-/** 
- * 关闭串口函数函数指针
- * 
- * @param handel 串口句柄
- */
-typedef void (*fnSerialPortClose)(void *handel);
 
 struct PLC
 {
