@@ -34,7 +34,7 @@ struct PLC_Priv
     fnPlcWriteWords writeWords;
 
     char serialportName[SERIALPORT_NAME_MAX_LEN];
-    sSerialParam serialParam;
+    sSerialportParam serialParam;
     void *serialport;
 
     void *priv;

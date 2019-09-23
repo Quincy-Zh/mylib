@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "../serialport/serialport_param_defs.h"
+
 #include <stdint.h>
 
 struct PLC;
@@ -16,15 +18,6 @@ typedef enum PLC_Type
     PANASONIC_,
 } ePLC_Type;
 
-typedef struct SerialParam
-{
-    int baudrate;
-    char databits;
-    char stopbits;
-    char parity;
-    char flowctrl;
-} sSerialParam;
-
 /** 
  * 打开串口函数函数指针
  * 
@@ -33,7 +26,7 @@ typedef struct SerialParam
  * 
  * @return 返回串口句柄，NULL 表示打开失败
  */
-typedef void * (*fnSerialPortOpen)(const char *port, const sSerialParam *param);
+typedef void * (*fnSerialPortOpen)(const char *port, const sSerialportParam *param);
 
 /** 
  * 串口读取函数函数指针

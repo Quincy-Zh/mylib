@@ -1,6 +1,8 @@
 #include "plc.h"
 #include "plc_priv_defs.h"
 
+#include "mitsubishi/fx.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,11 +27,11 @@ int plc_init(sPLC *plc, ePLC_Type type)
     int ret = -1;
     if(type == MITSUBISHI_FX)
     {
-        ret = fx_init(priv);
+        ret = fx_init(plc);
     }
     else if(type == PANASONIC_)
     {
-        //ret = xx_init(priv);
+        //ret = xx_init(plc);
     }
     
     if(ret != 0)

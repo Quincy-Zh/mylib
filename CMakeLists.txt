@@ -12,6 +12,7 @@ SET(TARGET test)
 
 PROJECT(${TARGET})
 
+add_subdirectory(linkedlist)
 add_subdirectory(plc)
 add_subdirectory(serialport)
 add_subdirectory(test)

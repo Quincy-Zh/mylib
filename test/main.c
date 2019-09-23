@@ -5,72 +5,89 @@
 #include <string.h>
 #include <stdlib.h>
 
-static void * serialPortOpen(const char *port, const sSerialParam *param);
+static void * serialPortOpen(const char *port, const sSerialportParam *param);
 static int serialPortRead(void *handle, char *buff, int max_length);
 static int serialPortWrite(void *handle, const char *buff, int length);
 static void serialPortClose(void *handel);
 
 int main(int argc, char * argv[])
 {
-    int value = 23;
-    char buff[128] = {0};
-    int baudrate = 9600;
-    int databits = SP_DATA_BITS_8;
-    int stopbits = SP_STOP_BITS_1;
-    int parity = SP_PARITY_NONE;
-    int flowctrl = SP_FLOWCTRL_NONE;
+    const char cfg_filepath = "cfg_plc_fx.ini";
+    uint8_t x_val[5] = {0};
 
-    int i = 0;
+    sPLC plc = {
+        cfg_filepath,
+        serialPortOpen,
+        serialPortClose,
+        serialPortRead,
+        serialPortWrite,
+        NULL
+    };
 
-    printf(":: Value: %xH, %dD,%oO.\n", value, value, value);
-    
-    if(argc < 2)
+    if(plc_init(&plc, MITSUBISHI_FX))
     {
-        fprintf(stderr, "Usage:\n  %s <serial port> [baudrate[,databits[,stopbits[,parity[,flowctrl]]]]].\n", argv[0]);
-    
+        printf(":: 初始化PLC失败.\n");
+
         return 1;
     }
 
-    if(argc >= 3)
+    if(plc_read_bits(&plc, 1, "X0", 5, x_val))
     {
-        i = sscanf(argv[2], "%d,%d,%d,%d,%d", &baudrate, &databits, &stopbits, &parity, &flowctrl);
-
-        if(i == 0)
+        printf(":: 读取 PLC 失败.\n");
+    }
+    else
+    {
+        for(int i = 0 ; i < sizeof(x_val); ++i)
         {
-            fprintf(stderr, ":: Params is invalid.\n");
-
-            return 1;
+            printf("  [X%d]: %d.\n", i, x_val[i]);
         }
     }
     
-    printf(":: %s %d,%d,%d,%d,%d.\n", argv[1], baudrate, databits, stopbits, parity, flowctrl);
-
-    sSerialportParam _param;
-    _param.baudrate = baudrate;
-    _param.databits = databits;
-    _param.stopbits = stopbits;
-    _param.parity = parity;
-    _param.flowctrl = flowctrl;
     
-    sSerialportHandle *handle = serialport_open(argv[1], &_param);
-
-    if(handle != NULL)
-    {
-        i = serialport_write(handle, "hello", 5);
-        printf(":: Write %d-byte.\n", i);
-
-        i = 0;
-        while( i < 10)
-        {
-            i += serialport_read(handle, buff+i, sizeof(buff)-i);
-        }
-
-        printf(":: read %d-byte.\n", i);
-
-        serialport_close(handle);
-    }
+    plc_deinit(&plc);
 
     return 0;
+}
+
+void * serialPortOpen(const char *port, const sSerialportParam *param)
+{
+    return serialport_open(port, param);
+}
+
+int serialPortRead(void *handle, char *buff, int max_length)
+{
+    sSerialportHandle *handle = (sSerialportHandle *)handle;
+
+    if(handle == NULL)
+    {
+        return -1;
+    }
+
+    return serialport_read(handle, buff, max_length);
+}
+
+int serialPortWrite(void *handle, const char *buff, int length)
+{
+    sSerialportHandle *handle = (sSerialportHandle *)handle;
+
+    if(handle == NULL)
+    {
+        return -1;
+    }
+
+    return serialport_write(handle, buff, length);
+}
+
+void serialPortClose(void *handel)
+{
+    sSerialportHandle *handle = (sSerialportHandle *)handle;
+
+    if(handle == NULL)
+    {
+        return;
+    }
+
+    serialport_close(handle);
 }
 
 // EOF
